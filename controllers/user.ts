@@ -263,8 +263,8 @@ export const updateUser = (req: Request, res: Response) => {
             bio: bio,
             location: location,
             x_url: x,
-            avatar: (data as RowDataPacket[])[1][0].userImg,
-            profile_img: (data as RowDataPacket[])[1][0].profileImg,
+            avatar: (data as RowDataPacket[])[1][0].avatar,
+            profile_img: (data as RowDataPacket[])[1][0].profile_img,
             youtube_url: youtube,
             message: 'Profile has been updated!',
           });
