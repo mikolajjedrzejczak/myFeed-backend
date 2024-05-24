@@ -124,49 +124,66 @@ export const verify = (req: Request, res: Response) => {
 export const signin = (req: Request, res: CookieResponse) => {
   const { email, password } = req.body;
 
-  if (!email.length || !password.length)
+  if (!email.length || !password.length) {
+    console.log('Signin error: Missing email or password');
     return res
       .status(409)
       .json({ message: 'Fill up all sign in inputs properly!' });
+  }
 
   const q = 'SELECT * FROM user WHERE email = ?;';
 
   db.query(q, [email], async (err, output) => {
-    if (err) return res.status(500).json(err);
+    if (err) {
+      console.log('Signin error: Database query failed', err);
+      return res.status(500).json(err);
+    }
 
     const data = output as RowDataPacket[];
 
-    if (Array.isArray(data) && data.length === 0)
+    if (Array.isArray(data) && data.length === 0) {
+      console.log('Signin error: User not found');
       return res.status(404).json({ message: 'User not found!' });
+    }
 
-    const comparePass = bcrypt.compareSync(req.body.password, data[0].password);
+    const comparePass = bcrypt.compareSync(password, data[0].password);
 
-    if (!comparePass)
+    if (!comparePass) {
+      console.log('Signin error: Wrong password or email');
       return res.status(400).json({ message: 'Wrong password or email!' });
+    }
 
-    const verified = await checkIfUserIsVerified(email);
+    try {
+      const verified = await checkIfUserIsVerified(email);
 
-    if (Array.isArray(verified) && verified.length === 0)
-      return res.status(409).json({ message: 'Verify your account by email!' });
+      if (Array.isArray(verified) && verified.length === 0) {
+        console.log('Signin error: Account not verified');
+        return res
+          .status(409)
+          .json({ message: 'Verify your account by email!' });
+      }
 
-    const token = jwt.sign(
-      { id: data[0].id, username: data[0].username },
-      process.env.JWT_SECRET_KEY as Secret
-    );
+      const token = jwt.sign(
+        { id: data[0].id, username: data[0].username },
+        process.env.JWT_SECRET_KEY as Secret
+      );
 
-    const { password, ...others } = data[0];
+      const { password, ...others } = data[0];
 
-    res
-      .cookie('access_token', token, {
-        httpOnly: true,
-        cookie: { domain: 'devdomain.site' },
-        maxAge: 3600 * 60 * 60 * 60,
-      })
-      .status(200)
-      .json(others);
+      res
+        .cookie('access_token', token, {
+          httpOnly: true,
+          cookie: { domain: 'devdomain.site' },
+          maxAge: 3600 * 60 * 60 * 60,
+        })
+        .status(200)
+        .json(others);
+    } catch (verificationError) {
+      console.log('Signin error: Verification check failed', verificationError);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
   });
 };
-
 export const signout = (req: Request, res: Response) => {
   res
     .clearCookie('access_token', {
