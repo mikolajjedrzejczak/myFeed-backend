@@ -3,13 +3,13 @@ import bcrypt from 'bcryptjs';
 import jwt, { Secret } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
-import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { Request, Response } from 'express';
 import { RowDataPacket } from 'mysql2';
 import Mail from 'nodemailer/lib/mailer';
 import { userInfoProps } from '../types/user';
 import { CookieResponse } from '../types/cookie';
+import { generateRandomToken } from '../utils/utils';
 
 export const signup = (req: Request, res: Response) => {
   const { email, name, username, password } = req.body;
@@ -19,10 +19,6 @@ export const signup = (req: Request, res: Response) => {
       message: 'Fill up all sign up inputs properly!',
     });
   }
-
-  const generateVerificationToken = () => {
-    return crypto.randomBytes(32).toString('hex');
-  };
 
   const q = 'SELECT * FROM user WHERE email = ?;';
   db.query(q, [req.body.email], (err, data) => {
@@ -49,7 +45,7 @@ export const signup = (req: Request, res: Response) => {
           message: 'Too short password!',
         });
 
-      const verificationToken = generateVerificationToken();
+      const verificationToken = generateRandomToken();
 
       const mailOptions = {
         from: process.env.VERIFY_EMAIL,

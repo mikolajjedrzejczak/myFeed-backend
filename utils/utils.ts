@@ -3,7 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/db';
 import { MediaType } from '../constants';
 import { v2 as cloudinary } from 'cloudinary';
+import crypto from 'crypto';
 
+export const generateRandomToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
 const parser = new DatauriParser();
 
 export const bufferToDataURI = (fileFormat: any, buffer: Buffer) =>
