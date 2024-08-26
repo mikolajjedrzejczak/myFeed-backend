@@ -20,7 +20,7 @@ const server = http.createServer(app);
 
 // middlewares
 app.use((req, res, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', 'https://devdomain.site');
+  res.header('Access-Control-Allow-Origin', 'https://test-domain.ovh');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
   res.header(
     'Access-Control-Allow-Headers',
@@ -32,7 +32,7 @@ app.use((req, res, next: NextFunction) => {
 });
 app.use(
   cors({
-    origin: 'https://devdomain.site',
+    origin: 'https://test-domain.ovh',
     credentials: true,
   })
 );
